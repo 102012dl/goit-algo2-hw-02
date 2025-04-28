@@ -1,0 +1,157 @@
+HW T 2 2 
+
+Завдання 2. Оптимальне розрізання стрижня для максимального прибутку (Rod Cutting Problem)
+
+from typing import List, Dict
+
+def rod_cutting_memo(length: int, prices: List[int]) -> Dict:
+    """
+    Знаходить оптимальний спосіб розрізання через мемоізацію
+    """
+    memo = {}
+
+    def helper(n: int):
+        if n == 0:
+            return 0, []
+        if n in memo:
+            return memo[n]
+
+        best_profit = float('-inf')
+        best_cuts: List[int] = []
+
+        for i in range(1, n + 1):
+            profit_rest, cuts_rest = helper(n - i)
+            total_profit = prices[i - 1] + profit_rest
+            if total_profit > best_profit:
+                best_profit = total_profit
+                best_cuts = [i] + cuts_rest
+
+        memo[n] = (best_profit, best_cuts)
+        return memo[n]
+
+    max_profit, cuts = helper(length)
+    return {
+        "max_profit": max_profit,
+        "cuts": cuts,
+        "number_of_cuts": len(cuts) - 1 if cuts else 0
+    }
+
+def rod_cutting_table(length: int, prices: List[int]) -> Dict:
+    """
+    Знаходить оптимальний спосіб розрізання через табуляцію
+    """
+    dp = [0] * (length + 1)
+    cut_choice = [0] * (length + 1)
+
+    # Побудова таблиці dp і вибір довжини першого шматка
+    for j in range(1, length + 1):
+        best_profit = float('-inf')
+        best_i = 0
+        for i in range(1, j + 1):
+            total_profit = prices[i - 1] + dp[j - i]
+            if total_profit > best_profit:
+                best_profit = total_profit
+                best_i = i
+        dp[j] = best_profit
+        cut_choice[j] = best_i
+
+    # Відновлення розрізів
+    n = length
+    cuts = []
+    while n > 0:
+        cuts.append(cut_choice[n])
+        n -= cut_choice[n]
+    # Для відмінності порядку (як в очікуванні) розгортаємо список
+    cuts.reverse()
+
+    return {
+        "max_profit": dp[length],
+        "cuts": cuts,
+        "number_of_cuts": len(cuts) - 1 if cuts else 0
+    }
+
+def run_tests():
+    test_cases = [
+        {"length": 5, "prices": [2, 5, 7, 8, 10], "name": "Базовий випадок"},
+        {"length": 3, "prices": [1, 3, 8],         "name": "Оптимально не різати"},
+        {"length": 4, "prices": [3, 5, 6, 7],       "name": "Рівномірні розрізи"}
+    ]
+
+    for test in test_cases:
+        print(f"\nТест: {test['name']}")
+        length = test["length"]
+        prices = test["prices"]
+        print(f"Довжина стрижня: {length}")
+        print(f"Ціни: {prices}")
+
+        memo_result = rod_cutting_memo(length, prices)
+        print("\nРезультат мемоізації:")
+        print(f"Максимальний прибуток: {memo_result['max_profit']}")
+        print(f"Розрізи: {memo_result['cuts']}")
+        print(f"Кількість розрізів: {memo_result['number_of_cuts']}")
+
+        table_result = rod_cutting_table(length, prices)
+        print("\nРезультат табуляції:")
+        print(f"Максимальний прибуток: {table_result['max_profit']}")
+        print(f"Розрізи: {table_result['cuts']}")
+        print(f"Кількість розрізів: {table_result['number_of_cuts']}")
+
+        print("\nПеревірка пройшла успішно!")
+
+# Запуск тестів
+run_tests()
+
+
+
+
+
+
+Тест: Базовий випадок
+Довжина стрижня: 5
+Ціни: [2, 5, 7, 8, 10]
+
+Результат мемоізації:
+Максимальний прибуток: 12
+Розрізи: [1, 2, 2]
+Кількість розрізів: 2
+
+Результат табуляції:
+Максимальний прибуток: 12
+Розрізи: [2, 2, 1]
+Кількість розрізів: 2
+
+Перевірка пройшла успішно!
+
+Тест: Оптимально не різати
+Довжина стрижня: 3
+Ціни: [1, 3, 8]
+
+Результат мемоізації:
+Максимальний прибуток: 8
+Розрізи: [3]
+Кількість розрізів: 0
+
+Результат табуляції:
+Максимальний прибуток: 8
+Розрізи: [3]
+Кількість розрізів: 0
+
+Перевірка пройшла успішно!
+
+Тест: Рівномірні розрізи
+Довжина стрижня: 4
+Ціни: [3, 5, 6, 7]
+
+Результат мемоізації:
+Максимальний прибуток: 12
+Розрізи: [1, 1, 1, 1]
+Кількість розрізів: 3
+
+Результат табуляції:
+Максимальний прибуток: 12
+Розрізи: [1, 1, 1, 1]
+Кількість розрізів: 3
+
+Перевірка пройшла успішно!
+
+
